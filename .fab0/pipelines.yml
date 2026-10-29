@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://schema.fab0.dev/pipeline.v1.json
+version: 1
+name: feature-stories
+description: A Feature planned into Stories, each implemented and reviewed by a person; done when its Stories are.
+people:
+  leads: [eugenefurs]
+status:
+  labels: [Todo, Ready, InProgress, InReview, Done]
+  end: Done
+start: { type: Feature, status: Ready, by: [leads] }
+escalate: [leads]
+types:
+  Feature:
+    steps:
+      plan:
+        on: { status: Ready }
+        do: agent.routine
+        skill: plan-feature
+        model: large
+        makes: issues
+        spawn: { type: Story, budget: 10 }
+        approve: { human: [leads], via: command }
+      accept:
+        on: { children: { type: Story, all: Done } }
+        do: github.label
+        label: Done
+  Story:
+    parent: Feature
+    steps:
+      implement:
+        on: { status: Ready }
+        gates: [{ dependencies: resolved }]
+        do: agent.record
+        skill: implement
+        by: [leads]
+        makes: pr
+        approve: { human: [leads], via: merge }
+        on_done: [{ label: Done }]
