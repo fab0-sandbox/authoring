@@ -36,3 +36,16 @@ types:
         makes: pr
         approve: { human: [leads], via: merge }
         on_done: [{ label: Done }]
+---
+version: 2
+name: sync-check
+description: A v2 pipeline beside the v1 one, for stage 7's sync check (AC7.19).
+executors:
+  worker: { type: manual, by: [eugenefurs] }
+start: [{ on: api }]
+states:
+  work:
+    run: worker
+    on: { done: done, failed: failed }
+  done: { end: succeeded }
+  failed: { end: failed }
